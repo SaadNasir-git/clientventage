@@ -24,5 +24,6 @@ export const project = pgTable("project", {
     startDate: date("start_date", { mode: "string", }).notNull(),
     dueDate: date("due_date", { mode: "string" }).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+    updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(() => new Date()),
+    deletedAt: timestamp("deleted_at", { withTimezone: true })
 });

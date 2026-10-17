@@ -2,12 +2,12 @@ import { relations } from "drizzle-orm/_relations";
 import { account, session, user } from "./schema/auth";
 import { client } from "./schema/client";
 import { project } from "./schema/project";
-import { activityLog } from "./schema/activityLog";
+import { projectActivityLog } from "./schema/projectActivityLog";
 
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
-  activities: many(activityLog)
+  activities: many(projectActivityLog)
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -26,7 +26,7 @@ export const accountRelations = relations(account, ({ one }) => ({
 
 export const clientRelations = relations(client, ({ many }) => ({
   projects: many(project),
-  activities: many(activityLog)
+  activities: many(projectActivityLog)
 }));
 
 export const projectRelations = relations(project, ({ one, many }) => ({
@@ -34,20 +34,20 @@ export const projectRelations = relations(project, ({ one, many }) => ({
     fields: [project.clientId],
     references: [client.id],
   }),
-  activities: many(activityLog)
+  activities: many(projectActivityLog)
 }));
 
-export const activityLogRelations = relations(activityLog, ({ one }) => ({
+export const projectActivityLogRelations = relations(projectActivityLog, ({ one }) => ({
   actor: one(user, {
-    fields: [activityLog.actorId],
+    fields: [projectActivityLog.actorId],
     references: [user.id],
   }),
   client: one(client, {
-    fields: [activityLog.clientId],
+    fields: [projectActivityLog.clientId],
     references: [client.id],
   }),
   project: one(project, {
-    fields: [activityLog.projectId],
+    fields: [projectActivityLog.projectId],
     references: [project.id],
   })
 }));
