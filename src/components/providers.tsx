@@ -7,7 +7,7 @@ import { Toaster } from "sonner";
 import { AppShell } from "./layout/app-shell";
 import { User } from "../lib/types";
 
-export function Providers({ children, user }: { children: React.ReactNode, user: User }) {
+export function Providers({ children, user }: { children: React.ReactNode, user: User | null }) {
   const [client] = useState(
     () =>
       new QueryClient({
@@ -29,9 +29,11 @@ export function Providers({ children, user }: { children: React.ReactNode, user:
       disableTransitionOnChange
     >
       <QueryClientProvider client={client}>
-        <AppShell userName={user.name} userEmail={user.email} userRole={user.role}>
-        {children}
-        </AppShell>
+        {user ? (
+          <AppShell userName={user?.name} userEmail={user?.email} userRole={user?.role}>
+            {children}
+          </AppShell>
+        ) : children}
         <Toaster richColors position="top-right" closeButton />
       </QueryClientProvider>
     </ThemeProvider>
