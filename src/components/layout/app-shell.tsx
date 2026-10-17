@@ -1,8 +1,8 @@
 "use client";
 
-import { Menu, X, LogOut } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { LogOut } from "lucide-react";
+import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { toast } from "sonner";
 import { Sidebar } from "./sidebar";
 import { ThemeToggle } from "./theme-toggle";
@@ -16,23 +16,59 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useAppStore } from "@/stores/app-store";
-import { cn, initials } from "@/lib/utils";
+import { initials } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+  useSidebar,
+} from "@/components/ui/sidebar";
 
-const TITLES: Record<string, string> = {
-  dashboard: "Dashboard",
-  clients: "Clients",
-  "client-detail": "Client",
-  projects: "Projects",
-  "project-detail": "Project",
+const SECTION_TITLES: Record<string, { list: string; detail: string }> = {
+  clients: { list: "Clients", detail: "Client" },
+  projects: { list: "Projects", detail: "Project" },
 };
+
+const FALLBACK_TITLE = "Client and Project Hub";
 
 interface AppShellProps {
   userName: string;
   userEmail: string;
-  userRole: string;
+  userRole: string | undefined | null;
   children: React.ReactNode;
+}
+
+/**
+ * Resolve the header title from the URL.
+ *   /dashboard                 → "Dashboard"
+ *   /dashboard/clients         → "Clients"
+ *   /dashboard/clients/<id>    → "Client"
+ *   /dashboard/projects        → "Projects"
+ *   /dashboard/projects/<id>   → "Project"
+ */
+function deriveTitle(pathname: string): string {
+  const segments = pathname.split("/").filter(Boolean);
+  if (segments.length <= 1) return "Dashboard"; // "/" or "/dashboard"
+  const section = segments[1];
+  const meta = SECTION_TITLES[section];
+  if (!meta) return FALLBACK_TITLE;
+  return segments.length > 2 ? meta.detail : meta.list;
+}
+
+/**
+ * Closes the mobile drawer whenever the route changes.
+ * Renders nothing. Must live inside <SidebarProvider>.
+ */
+function CloseMobileOnNavigate() {
+  const pathname = usePathname();
+  const { setOpenMobile } = useSidebar();
+
+  useEffect(() => {
+    setOpenMobile(false);
+  }, [pathname, setOpenMobile]);
+
+  return null;
 }
 
 export function AppShell({
@@ -41,92 +77,37 @@ export function AppShell({
   userRole,
   children,
 }: AppShellProps) {
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const router = useRouter();
-  const view = useAppStore((s) => s.view);
-  const title = TITLES[view.name] ?? "Hub";
-
-  useEffect(() => {
-    if (mobileOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [mobileOpen]);
+  const pathname = usePathname();
+  const title = deriveTitle(pathname);
 
   const onSignOut = async () => {
     try {
       await authClient.signOut();
+      toast.success("Signed out");
     } catch {
-      // ignore — cookie may already be cleared
+      toast.error("Couldn't reach the server — you may still be signed in.");
     }
-    toast.success("Signed out");
-    router.push("/signin");
-    router.refresh();
+    // Hard reset — clears React Query / Zustand / any client caches so the
+    // authed shell can't be resurrected via the back button.
+    window.location.href = "/signin";
   };
 
   return (
-    <div className="flex min-h-screen w-full bg-background">
-      {/* Desktop sidebar */}
-      <div className="hidden w-64 shrink-0 border-r border-sidebar-border md:block">
-        <div className="sticky top-0 h-screen">
-          <Sidebar
-            userName={userName}
-            userEmail={userEmail}
-            userRole={userRole}
-            onSignOut={onSignOut}
-          />
-        </div>
-      </div>
+    <SidebarProvider>
+      <CloseMobileOnNavigate />
 
-      {/* Mobile sidebar */}
-      {mobileOpen && (
-        <div className="fixed inset-0 z-50 md:hidden">
-          <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={() => setMobileOpen(false)}
-          />
-          <div
-            className={cn(
-              "absolute left-0 top-0 h-full w-72 shadow-xl",
-              "animate-in slide-in-from-left",
-            )}
-          >
-            <Sidebar
-              userName={userName}
-              userEmail={userEmail}
-              userRole={userRole}
-              onSignOut={onSignOut}
-              onNavigate={() => setMobileOpen(false)}
-            />
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-2 top-2 h-8 w-8"
-              onClick={() => setMobileOpen(false)}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      )}
+      <Sidebar
+        userName={userName}
+        userEmail={userEmail}
+        userRole={userRole}
+        onSignOut={onSignOut}
+      />
 
-      {/* Main column */}
-      <div className="flex min-w-0 flex-1 flex-col">
+      <SidebarInset>
         <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:px-6">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden"
-            onClick={() => setMobileOpen(true)}
-            aria-label="Open menu"
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
+          <SidebarTrigger className="-ml-2" />
           <h1 className="text-base font-semibold md:text-lg">{title}</h1>
+
           <div className="ml-auto flex items-center gap-1">
             <ThemeToggle />
             <DropdownMenu>
@@ -136,7 +117,7 @@ export function AppShell({
                   className="relative h-9 w-9 rounded-full p-0"
                 >
                   <Avatar className="h-9 w-9">
-                    <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
+                    <AvatarFallback className="bg-primary text-xs font-semibold text-gray-300">
                       {initials(userName) || "?"}
                     </AvatarFallback>
                   </Avatar>
@@ -148,8 +129,8 @@ export function AppShell({
                   <span className="text-xs font-normal text-muted-foreground">
                     {userEmail}
                   </span>
-                  <span className="mt-1 inline-flex w-fit items-center rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-primary">
-                    {userRole}
+                  <span className="mt-1 inline-flex w-fit items-center rounded-md px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide bg-primary text-gray-300">
+                    {userRole ?? "user"}
                   </span>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
@@ -166,7 +147,7 @@ export function AppShell({
         </header>
 
         <main className="flex-1 px-4 py-6 md:px-6 lg:px-8">{children}</main>
-      </div>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

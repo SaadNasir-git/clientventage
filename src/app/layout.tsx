@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Providers } from "@/components/providers";
+import { Providers } from "../components/providers";
+import { getUser } from "../lib/auth-helpers";
+
+export const instant = false;
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,16 +22,18 @@ export const metadata: Metadata = {
     "Manage clients, projects, and project activity in one dashboard.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const user = await getUser();
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body
         suppressHydrationWarning
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
-        <Providers>{children}</Providers>
+        <Providers user={user}>{children}</Providers>
       </body>
     </html>
   );

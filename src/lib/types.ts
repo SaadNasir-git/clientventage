@@ -83,3 +83,14 @@ export interface ProjectUpdate {
   startDate?: string;
   dueDate?: string;
 }
+
+export interface User {
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+  email: string;
+  emailVerified: boolean;
+  name: string;
+  image?: string | null | undefined;
+  role: "user" | "admin" | null | undefined;
+}

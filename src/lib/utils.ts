@@ -1,12 +1,6 @@
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
+export { cn } from "cn"
+
 import type { ProjectStatus, ProjectPriority } from "@/lib/types"
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
-}
-
-// ===== Date helpers =====
 
 export function formatDate(iso: string | null | undefined): string {
   if (!iso) return "—";

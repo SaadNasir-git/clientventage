@@ -1,8 +1,8 @@
 import { db } from "@/db";
-import { client } from "@/db/schema";
+import { client, project } from "@/db/schema";
 import { updateClientSchema } from "@/db/validators";
 import { and, eq, isNull } from "drizzle-orm";
-import { NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 const idSchema = z.uuid();
@@ -22,7 +22,7 @@ const isNullCondition = isNull(client.deletedAt)
  *
  * Auth: required | Params: id (uuid) | Returns: 200 Client | Errors: 400/404/500
  */
-export async function GET(_: Request, ctx: RouteCtx) {
+export async function GET(_: NextRequest, ctx: RouteCtx) {
     const { clientId, error } = await getClientId(ctx);
     if (error) return NextResponse.json({ message: "Invalid id" }, { status: 400 });
 
@@ -44,7 +44,7 @@ export async function GET(_: Request, ctx: RouteCtx) {
  *
  * Auth: required | Params: id (uuid) | Body: updateClientSchema | Returns: 200 Client | Errors: 400/404/500
  */
-export async function PATCH(request: Request, ctx: RouteCtx) {
+export async function PATCH(request: NextRequest, ctx: RouteCtx) {
     const { clientId, error } = await getClientId(ctx);
     if (error) return NextResponse.json({ message: "Invalid id" }, { status: 400 });
 
@@ -84,11 +84,20 @@ export async function PATCH(request: Request, ctx: RouteCtx) {
  *
  * Auth: required | Params: id (uuid) | Returns: 204 | Errors: 400/404/500
  */
-export async function DELETE(_: Request, ctx: RouteCtx) {
+export async function DELETE(_: NextRequest, ctx: RouteCtx) {
     const { clientId, error } = await getClientId(ctx);
     if (error) return NextResponse.json({ message: "Invalid id" }, { status: 400 });
 
     try {
+        const projects = await db.select({
+            id: project.id
+        }).from(project)
+            .where(and(eq(project.clientId, clientId), isNull(project.deletedAt)));
+
+        if (projects.length > 0) {
+            throw new Error();
+        }
+
         const deleted = await db.
             update(client)
             .set({

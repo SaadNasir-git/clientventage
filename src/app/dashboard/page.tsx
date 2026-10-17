@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import {
   Users,
   FolderKanban,
@@ -12,7 +13,6 @@ import {
   Calendar,
   TrendingUp,
 } from "lucide-react";
-import { useAppStore } from "@/stores/app-store";
 import { useClients } from "@/hooks/use-clients";
 import { useProjects } from "@/hooks/use-projects";
 import {
@@ -36,8 +36,7 @@ import {
 } from "@/lib/utils";
 import type { Project, ProjectStatus } from "@/lib/types";
 
-export function DashboardView() {
-  const navigate = useAppStore((s) => s.navigate);
+export default function Page() {
   const { data: clients, isLoading: clientsLoading } = useClients("");
   const { data: projects, isLoading: projectsLoading } = useProjects({
     search: "",
@@ -120,28 +119,28 @@ export function DashboardView() {
           value={clientsLoading ? "—" : String(clientList.length)}
           icon={<Users className="h-5 w-5" />}
           accent="bg-slate-100 text-slate-700 dark:bg-slate-800/80 dark:text-slate-300"
-          onClick={() => navigate({ name: "clients" })}
+          href="/dashboard/clients"
         />
         <StatCard
           label="Total projects"
           value={projectsLoading ? "—" : String(projectList.length)}
           icon={<FolderKanban className="h-5 w-5" />}
           accent="bg-violet-100 text-violet-700 dark:bg-violet-950/60 dark:text-violet-300"
-          onClick={() => navigate({ name: "projects" })}
+          href="/dashboard/projects"
         />
         <StatCard
           label="In progress"
           value={projectsLoading ? "—" : String(stats.inProgress)}
           icon={<TrendingUp className="h-5 w-5" />}
           accent="bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300"
-          onClick={() => navigate({ name: "projects" })}
+          href="/dashboard/projects"
         />
         <StatCard
           label="Overdue"
           value={projectsLoading ? "—" : String(stats.overdue)}
           icon={<AlertTriangle className="h-5 w-5" />}
           accent="bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300"
-          onClick={() => navigate({ name: "projects" })}
+          href="/dashboard/projects"
         />
       </div>
 
@@ -194,13 +193,11 @@ export function DashboardView() {
               </CardTitle>
               <CardDescription>Next 5 due, not completed</CardDescription>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate({ name: "projects" })}
-            >
-              View all
-              <ArrowRight className="ml-1 h-3.5 w-3.5" />
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/dashboard/projects">
+                View all
+                <ArrowRight className="ml-1 h-3.5 w-3.5" />
+              </Link>
             </Button>
           </CardHeader>
           <CardContent>
@@ -218,11 +215,9 @@ export function DashboardView() {
                   const days = daysUntil(p.dueDate);
                   const overdue = days < 0;
                   return (
-                    <button
+                    <Link
                       key={p.id}
-                      onClick={() =>
-                        navigate({ name: "project-detail", projectId: p.id })
-                      }
+                      href={`/dashboard/projects/${p.id}`}
                       className={cn(
                         "group flex items-center gap-3 rounded-md border border-transparent p-2 text-left transition-colors",
                         "hover:border-border hover:bg-accent/50",
@@ -252,7 +247,7 @@ export function DashboardView() {
                             ? "today"
                             : `${days}d`}
                       </span>
-                    </button>
+                    </Link>
                   );
                 })}
               </div>
@@ -270,13 +265,11 @@ export function DashboardView() {
               </CardTitle>
               <CardDescription>Latest 5 projects</CardDescription>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate({ name: "projects" })}
-            >
-              View all
-              <ArrowRight className="ml-1 h-3.5 w-3.5" />
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/dashboard/projects">
+                View all
+                <ArrowRight className="ml-1 h-3.5 w-3.5" />
+              </Link>
             </Button>
           </CardHeader>
           <CardContent>
@@ -291,11 +284,9 @@ export function DashboardView() {
             ) : (
               <div className="grid gap-1.5">
                 {recent.map((p) => (
-                  <button
+                  <Link
                     key={p.id}
-                    onClick={() =>
-                      navigate({ name: "project-detail", projectId: p.id })
-                    }
+                    href={`/dashboard/projects/${p.id}`}
                     className={cn(
                       "group flex items-center gap-3 rounded-md border border-transparent p-2 text-left transition-colors",
                       "hover:border-border hover:bg-accent/50",
@@ -310,7 +301,7 @@ export function DashboardView() {
                       </div>
                     </div>
                     <StatusBadge status={p.status} />
-                  </button>
+                  </Link>
                 ))}
               </div>
             )}
@@ -328,13 +319,11 @@ export function DashboardView() {
             </CardTitle>
             <CardDescription>Latest 5 clients added</CardDescription>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate({ name: "clients" })}
-          >
-            View all
-            <ArrowRight className="ml-1 h-3.5 w-3.5" />
+          <Button asChild variant="ghost" size="sm">
+            <Link href="/dashboard/clients">
+              View all
+              <ArrowRight className="ml-1 h-3.5 w-3.5" />
+            </Link>
           </Button>
         </CardHeader>
         <CardContent>
@@ -349,11 +338,9 @@ export function DashboardView() {
           ) : (
             <div className="grid gap-1.5">
               {recentClients.map((c) => (
-                <button
+                <Link
                   key={c.id}
-                  onClick={() =>
-                    navigate({ name: "client-detail", clientId: c.id })
-                  }
+                  href={`/dashboard/clients/${c.id}`}
                   className={cn(
                     "group flex items-center gap-3 rounded-md border border-transparent p-2 text-left transition-colors",
                     "hover:border-border hover:bg-accent/50",
@@ -371,7 +358,7 @@ export function DashboardView() {
                   <span className="text-xs text-muted-foreground">
                     {formatDate(c.createdAt)}
                   </span>
-                </button>
+                </Link>
               ))}
             </div>
           )}
@@ -407,17 +394,17 @@ function StatCard({
   value,
   icon,
   accent,
-  onClick,
+  href,
 }: {
   label: string;
   value: string;
   icon: React.ReactNode;
   accent: string;
-  onClick?: () => void;
+  href: string;
 }) {
   return (
-    <button
-      onClick={onClick}
+    <Link
+      href={href}
       className="group flex items-start justify-between rounded-lg border border-border bg-card p-4 text-left transition-colors hover:border-foreground/20 hover:bg-accent/40"
     >
       <div className="flex flex-col gap-1">
@@ -434,7 +421,7 @@ function StatCard({
       >
         {icon}
       </div>
-    </button>
+    </Link>
   );
 }
 

@@ -2,7 +2,7 @@ import { db } from '@/db';
 import { client } from '@/db/schema';
 import { insertClientSchema } from '@/db/validators';
 import { and, ilike, isNull, or } from 'drizzle-orm';
-import { NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 
 
 const isNullCondition = isNull(client.deletedAt);
@@ -13,7 +13,7 @@ const isNullCondition = isNull(client.deletedAt);
  *
  * Auth: required | Body: insertClientSchema | Returns: 201 { clientId } | Errors: 400/500
  */
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
  *
  * Auth: required | Query: query? | Returns: 200 Client[] | Errors: 500
  */
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get("query");

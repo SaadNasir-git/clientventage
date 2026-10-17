@@ -12,6 +12,7 @@ import {
   FolderKanban,
   X,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useAppStore } from "@/stores/app-store";
 import {
@@ -62,8 +63,17 @@ import type { Project } from "@/lib/types";
 
 const ALL = "ALL";
 
-export function ProjectsView() {
-  const navigate = useAppStore((s) => s.navigate);
+function safeMessage(err: unknown): string {
+  try {
+    return toApiError(err).message;
+  } catch {
+    return "Something went wrong.";
+  }
+}
+
+export default function Page() {
+  const router = useRouter();
+
   const search = useAppStore((s) => s.projectSearch);
   const setSearch = useAppStore((s) => s.setProjectSearch);
   const statusFilter = useAppStore((s) => s.projectStatusFilter);
@@ -93,15 +103,19 @@ export function ProjectsView() {
     setModalOpen(true);
   };
 
+  const goToProject = (id: string) => {
+    router.push(`/dashboard/projects/${id}`);
+  };
+
   const confirmDelete = async () => {
     if (!deleting) return;
     try {
       await deleteMut.mutateAsync(deleting.id);
       toast.success("Project deleted");
-      setDeleting(undefined);
     } catch (err) {
-      const e = toApiError(err);
-      toast.error(e.message);
+      toast.error(safeMessage(err));
+    } finally {
+      setDeleting(undefined);
     }
   };
 
@@ -196,7 +210,7 @@ export function ProjectsView() {
         <LoadingState />
       ) : isError ? (
         <ErrorState
-          message={toApiError(error).message}
+          message={safeMessage(error)}
           onRetry={() => refetch()}
         />
       ) : projects.length === 0 ? (
@@ -221,9 +235,15 @@ export function ProjectsView() {
                   <TableRow
                     key={p.id}
                     className="group cursor-pointer"
-                    onClick={() =>
-                      navigate({ name: "project-detail", projectId: p.id })
-                    }
+                    role="link"
+                    tabIndex={0}
+                    onClick={() => goToProject(p.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        goToProject(p.id);
+                      }
+                    }}
                   >
                     <TableCell>
                       <div className="flex flex-col">
@@ -323,8 +343,9 @@ export function ProjectsView() {
               This will archive{" "}
               <span className="font-medium text-foreground">
                 {deleting?.title}
-              </span>{" "}
-              It'll be hidden from your project list — its data and full activity history are preserved.
+              </span>
+              . It&apos;ll be hidden from your project list — its data and full
+              activity history are preserved.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

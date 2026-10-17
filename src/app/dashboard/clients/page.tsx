@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import {
   Plus,
   Search,
@@ -13,6 +13,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 import { useAppStore } from "@/stores/app-store";
 import { useClients, useDeleteClient, toApiError } from "@/hooks/use-clients";
 import { Button } from "@/components/ui/button";
@@ -39,8 +40,8 @@ import { ClientFormModal } from "@/components/clients/client-form-modal";
 import { formatDate, initials, cn } from "@/lib/utils";
 import type { Client } from "@/lib/types";
 
-export function ClientsView() {
-  const navigate = useAppStore((s) => s.navigate);
+export default function Page() {
+  const router = useRouter();
   const search = useAppStore((s) => s.clientSearch);
   const setSearch = useAppStore((s) => s.setClientSearch);
   const { data, isLoading, isError, error, refetch } = useClients(search);
@@ -50,7 +51,7 @@ export function ClientsView() {
   const [editing, setEditing] = useState<Client | undefined>(undefined);
   const [deleting, setDeleting] = useState<Client | undefined>(undefined);
 
-  const clients = useMemo(() => data ?? [], [data]);
+  const clients = data ?? [];
 
   const openCreate = () => {
     setEditing(undefined);
@@ -61,19 +62,24 @@ export function ClientsView() {
     setModalOpen(true);
   };
 
+  const goToClient = (id: string) => {
+    router.push(`/dashboard/clients/${id}`);
+  };
+
   const confirmDelete = async () => {
     if (!deleting) return;
     try {
       await deleteMut.mutateAsync(deleting.id);
       toast.success("Client deleted");
-      setDeleting(undefined);
     } catch (err) {
       const e = toApiError(err);
-      const msg =
+      toast.error(
         e.status === 500
           ? "Could not delete — make sure this client has no projects referencing them."
-          : e.message;
-      toast.error(msg);
+          : e.message,
+      );
+    } finally {
+      setDeleting(undefined);
     }
   };
 
@@ -109,14 +115,11 @@ export function ClientsView() {
         <LoadingState />
       ) : isError ? (
         <ErrorState
-          message={toApiError(error).message}
+          message={safeMessage(error)}
           onRetry={() => refetch()}
         />
       ) : clients.length === 0 ? (
-        <EmptyState
-          search={search}
-          onCreate={openCreate}
-        />
+        <EmptyState search={search} onCreate={openCreate} />
       ) : (
         <div className="overflow-hidden rounded-lg border border-border bg-card">
           <Table>
@@ -135,9 +138,15 @@ export function ClientsView() {
                 <TableRow
                   key={c.id}
                   className="group cursor-pointer"
-                  onClick={() =>
-                    navigate({ name: "client-detail", clientId: c.id })
-                  }
+                  role="link"
+                  tabIndex={0}
+                  onClick={() => goToClient(c.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      goToClient(c.id);
+                    }
+                  }}
                 >
                   <TableCell>
                     <div className="flex items-center gap-3">
@@ -238,7 +247,8 @@ export function ClientsView() {
               <span className="font-medium text-foreground">
                 {deleting?.name}
               </span>
-              They'll be hidden from your client list, but their data is preserved. Existing projects remain intact.
+              . They&apos;ll be hidden from your client list, but their data is
+              preserved. Existing projects remain intact.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -260,6 +270,14 @@ export function ClientsView() {
       </AlertDialog>
     </div>
   );
+}
+
+function safeMessage(err: unknown): string {
+  try {
+    return toApiError(err).message;
+  } catch {
+    return "Something went wrong.";
+  }
 }
 
 function Avatar({ name }: { name: string }) {

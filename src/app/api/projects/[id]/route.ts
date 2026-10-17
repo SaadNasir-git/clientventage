@@ -3,7 +3,7 @@ import { project, projectActivityLog } from "@/db/schema";
 import { updateProjectSchema } from "@/db/validators";
 import { getUser } from "@/lib/auth-helpers";
 import { and, eq, isNull } from "drizzle-orm";
-import { NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import z from "zod";
 
 const idSchema = z.uuid()
@@ -22,7 +22,7 @@ const isNullCondition = isNull(project.deletedAt);
  *
  * Auth: required | Params: id (uuid) | Returns: 200 Project | Errors: 400/500
  */
-export async function GET(_: Request, ctx: RouteCtx) {
+export async function GET(_: NextRequest, ctx: RouteCtx) {
     try {
         const { projectId, error } = await getProjectId(ctx);
         if (error) return NextResponse.json({ message: "Invalid id" }, { status: 400 });
@@ -52,7 +52,7 @@ export async function GET(_: Request, ctx: RouteCtx) {
  *
  * Auth: required | Params: id (uuid) | Returns: 204 | Errors: 400/404/500
  */
-export async function DELETE(_: Request, ctx: RouteCtx) {
+export async function DELETE(_: NextRequest, ctx: RouteCtx) {
     try {
         const { projectId, error } = await getProjectId(ctx);
         if (error) return NextResponse.json({ message: "Invalid id" }, { status: 400 });
@@ -109,7 +109,7 @@ export async function DELETE(_: Request, ctx: RouteCtx) {
  *
  * Auth: required | Params: id (uuid) | Body: updateProjectSchema | Returns: 200 { ok } | Errors: 400/404/500
  */
-export async function PUT(request: Request, ctx: RouteCtx) {
+export async function PUT(request: NextRequest, ctx: RouteCtx) {
     try {
         const { projectId, error } = await getProjectId(ctx)
         if (error) return NextResponse.json({ message: "Invalid id" }, { status: 400 });

@@ -1,7 +1,7 @@
 import { db } from "@/db";
 import { projectActivityLog, user } from "@/db/schema";
 import { desc, eq } from "drizzle-orm";
-import { NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 const uuid = z.uuid();
@@ -18,7 +18,7 @@ const changeMapSchema = z.record(
  *
  * Auth: required | Params: id (uuid) | Returns: 200 { logs } | Errors: 400/500
  */
-export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: projectId } = await params;
 
   if (!uuid.safeParse(projectId).success) {

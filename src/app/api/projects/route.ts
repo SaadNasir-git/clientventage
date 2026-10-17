@@ -3,7 +3,7 @@ import { projectActivityLog, project } from "@/db/schema";
 import { insertProjectSchema } from "@/db/validators";
 import { getUser } from "@/lib/auth-helpers";
 import { and, asc, eq, ilike, isNull, sql } from "drizzle-orm";
-import { NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 const uuid = z.uuid();
@@ -15,7 +15,7 @@ const isNullCondition = isNull(project.deletedAt)
  *
  * Auth: required | Body: insertProjectSchema | Returns: 201 Project | Errors: 400/500
  */
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   const actor = await getUser();
 
   const body = await request.json()
@@ -71,7 +71,7 @@ export async function POST(request: Request) {
  *
  * Auth: required | Query: clientId?, query? | Returns: 200 Project[] | Errors: 400/500
  */
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const clientIdParam = searchParams.get("clientId");
   const query = searchParams.get("query");
