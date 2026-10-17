@@ -39,7 +39,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
       .orderBy(desc(projectActivityLog.createdAt), desc(projectActivityLog.id))
       .limit(100);
 
-    const enhancedLogs: enhancedLogs[] = logs.map((log) => {
+    const enhancedLogs = logs.map((log) => {
       const parsed = changeMapSchema.safeParse(log.changes);
       return {
         id: log.id,

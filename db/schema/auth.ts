@@ -11,7 +11,7 @@ export const user = pgTable("user", {
     .defaultNow()
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
-  role: text("role", { enum: ["admin", "employee", "user"] }).default("user"),
+  role: text("role", { enum: ["admin", "user"] }).default("user"),
 });
 
 export const session = pgTable(
