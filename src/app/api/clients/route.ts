@@ -1,9 +1,9 @@
 import { db } from '@/db';
 import { client } from '@/db/schema';
 import { insertClientSchema } from '@/db/validators';
+import { isAdmin } from '@/src/lib/isAdmin';
 import { and, ilike, isNull, or } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
-
 
 const isNullCondition = isNull(client.deletedAt);
 
@@ -16,6 +16,13 @@ const isNullCondition = isNull(client.deletedAt);
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    const isOk = await isAdmin();
+
+    if (!isOk) {
+      return NextResponse.json({
+        message: "User is not allowed!"
+      })
+    }
 
     const parsed = await insertClientSchema.safeParseAsync(body);
 
@@ -63,6 +70,13 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
+    const isOk = await isAdmin();
+
+    if (!isOk) {
+      return NextResponse.json({
+        message: "User is not allowed!"
+      })
+    }
     const query = searchParams.get("query");
 
     const conditions = [];

@@ -1,5 +1,6 @@
 import { db } from "@/db";
 import { projectActivityLog, user } from "@/db/schema";
+import { isAdmin } from "@/src/lib/isAdmin";
 import { desc, eq } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
@@ -20,6 +21,13 @@ const changeMapSchema = z.record(
  */
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: projectId } = await params;
+  const isOk = await isAdmin();
+
+  if (!isOk) {
+    return NextResponse.json({
+      message: "User is not allowed!"
+    })
+  }
 
   if (!uuid.safeParse(projectId).success) {
     return NextResponse.json({ message: "Invalid id" }, { status: 400 });
@@ -47,10 +55,10 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
         actorName: log.actorName,
         changes: parsed.success
           ? Object.entries(parsed.data).map(([name, v]) => ({
-              name,
-              from: v.from,
-              to: v.to,
-            }))
+            name,
+            from: v.from,
+            to: v.to,
+          }))
           : [],
       };
     });

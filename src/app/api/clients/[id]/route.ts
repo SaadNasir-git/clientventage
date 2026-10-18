@@ -1,6 +1,7 @@
 import { db } from "@/db";
 import { client, project } from "@/db/schema";
 import { updateClientSchema } from "@/db/validators";
+import { isAdmin } from "@/src/lib/isAdmin";
 import { and, eq, isNull } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
@@ -24,6 +25,13 @@ const isNullCondition = isNull(client.deletedAt)
  */
 export async function GET(_: NextRequest, ctx: RouteCtx) {
     const { clientId, error } = await getClientId(ctx);
+    const isOk = await isAdmin();
+
+    if (!isOk) {
+        return NextResponse.json({
+            message: "User is not allowed!"
+        })
+    }
     if (error) return NextResponse.json({ message: "Invalid id" }, { status: 400 });
 
     try {
@@ -46,6 +54,13 @@ export async function GET(_: NextRequest, ctx: RouteCtx) {
  */
 export async function PATCH(request: NextRequest, ctx: RouteCtx) {
     const { clientId, error } = await getClientId(ctx);
+    const isOk = await isAdmin();
+
+    if (!isOk) {
+        return NextResponse.json({
+            message: "User is not allowed!"
+        })
+    }
     if (error) return NextResponse.json({ message: "Invalid id" }, { status: 400 });
 
     const body = await request.json();
@@ -86,6 +101,13 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx) {
  */
 export async function DELETE(_: NextRequest, ctx: RouteCtx) {
     const { clientId, error } = await getClientId(ctx);
+    const isOk = await isAdmin();
+
+    if (!isOk) {
+        return NextResponse.json({
+            message: "User is not allowed!"
+        })
+    }
     if (error) return NextResponse.json({ message: "Invalid id" }, { status: 400 });
 
     try {
