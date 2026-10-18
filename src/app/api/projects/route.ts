@@ -2,6 +2,7 @@ import { db } from "@/db";
 import { projectActivityLog, project } from "@/db/schema";
 import { insertProjectSchema } from "@/db/validators";
 import { getUser } from "@/lib/auth-helpers";
+import { isAdmin } from "@/src/lib/isAdmin";
 import { and, asc, eq, ilike, isNull, sql } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
@@ -73,6 +74,13 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
+  const isOk = await isAdmin();
+
+  if (!isOk) {
+    return NextResponse.json({
+      message: "User is not allowed!"
+    }, { status: 409 })
+  }
   const clientIdParam = searchParams.get("clientId");
   const query = searchParams.get("query");
 
