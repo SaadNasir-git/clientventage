@@ -34,8 +34,8 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
-  const inDashboard =
-    pathname === '/dashboard' || pathname.startsWith('/dashboard/');
+  const inDashboard = pathname === '/dashboard' || pathname.startsWith('/dashboard');
+
   if (!isAdmin && inDashboard) {
     return NextResponse.redirect(new URL('/', request.url));
   }

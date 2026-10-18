@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Providers } from "../components/providers";
-import { getUser } from "../lib/auth-helpers";
-import { User } from "../lib/types";
 
 export const instant = false;
 
@@ -23,16 +20,9 @@ export const metadata: Metadata = {
     "Manage clients, projects, and project activity in one dashboard.",
 };
 
-let user: User | null;
-
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  try {    
-    user = await getUser();
-  } catch (error) {
-    user = null
-  }
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -40,7 +30,7 @@ export default async function RootLayout({
         suppressHydrationWarning
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
-        <Providers user={user}>{children}</Providers>
+        {children}
       </body>
     </html>
   );
