@@ -136,8 +136,8 @@ file map — see **[ARCHITECTURE.md](./ARCHITECTURE.md)**.
 
 ### Prerequisites
 
-- Node.js 20+ or [Bun](https://bun.sh) (recommended)
-- A PostgreSQL database (local or hosted)
+- [Bun](https://bun.sh)
+- A PostgreSQL database
 
 ### 1. Install dependencies
 

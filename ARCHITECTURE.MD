@@ -291,12 +291,12 @@ return <ProtectedApp ... />;
 
 | Role     | Can access dashboard | Can call /api/clients, /api/projects |
 | -------- | -------------------- | ------------------------------------ |
-| admin    | yes                  | yes (recommended — add role check in handlers if needed) |
+| admin    | yes                  | yes                                  |
 | employee | no                   | configurable                         |
 | user     | no                   | configurable                         |
 
 New signups default to `user`. Promoting to `admin` requires direct DB
-access (or a future admin-only UI).
+access.
 
 ---
 
