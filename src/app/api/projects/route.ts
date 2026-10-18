@@ -19,6 +19,12 @@ const isNullCondition = isNull(project.deletedAt)
 export async function POST(request: NextRequest) {
   const actor = await getUser();
 
+  if (actor.role !== 'admin') {
+    return NextResponse.json({
+      message: "Forbidden"
+    }, { status: 409 })
+  }
+
   const body = await request.json()
 
   const parsed = insertProjectSchema.safeParse(body);
@@ -81,6 +87,7 @@ export async function GET(request: NextRequest) {
       message: "User is not allowed!"
     }, { status: 409 })
   }
+  
   const clientIdParam = searchParams.get("clientId");
   const query = searchParams.get("query");
 

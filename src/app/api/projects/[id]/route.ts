@@ -2,6 +2,7 @@ import { db } from "@/db";
 import { project, projectActivityLog } from "@/db/schema";
 import { updateProjectSchema } from "@/db/validators";
 import { getUser } from "@/lib/auth-helpers";
+import { isAdmin } from "@/src/lib/isAdmin";
 import { and, eq, isNull } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
 import z from "zod";
@@ -25,6 +26,13 @@ const isNullCondition = isNull(project.deletedAt);
 export async function GET(_: NextRequest, ctx: RouteCtx) {
     try {
         const { projectId, error } = await getProjectId(ctx);
+        const isOk = await isAdmin();
+
+        if (!isOk) {
+            return NextResponse.json({
+                message: "Forbidden"
+            }, { status: 409 })
+        }
         if (error) return NextResponse.json({ message: "Invalid id" }, { status: 400 });
 
         const [result] = await db.select()
@@ -58,6 +66,11 @@ export async function DELETE(_: NextRequest, ctx: RouteCtx) {
         if (error) return NextResponse.json({ message: "Invalid id" }, { status: 400 });
 
         const actor = await getUser();
+        if (actor.role !== 'admin') {
+            return NextResponse.json({
+                message: "Forbidden"
+            }, { status: 409 })
+        }
 
         const result = await db.transaction(async (tx) => {
             const [projectData] = await tx.select({
@@ -111,11 +124,19 @@ export async function DELETE(_: NextRequest, ctx: RouteCtx) {
  */
 export async function PUT(request: NextRequest, ctx: RouteCtx) {
     try {
-        const { projectId, error } = await getProjectId(ctx)
+        const { projectId, error } = await getProjectId(ctx);
+        const body = await request.json();
+
+        const actor = await getUser();
+
+        if (actor.role !== 'admin') {
+            return NextResponse.json({
+                message: "Forbidden"
+            }, { status: 409 })
+        }
+
         if (error) return NextResponse.json({ message: "Invalid id" }, { status: 400 });
 
-        const body = await request.json();
-        const actor = await getUser();
 
         const parsed = await updateProjectSchema.safeParseAsync(body);
         if (!parsed.success) {

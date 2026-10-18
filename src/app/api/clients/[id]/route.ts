@@ -29,9 +29,10 @@ export async function GET(_: NextRequest, ctx: RouteCtx) {
 
     if (!isOk) {
         return NextResponse.json({
-            message: "User is not allowed!"
+            message: "Forbidden"
         },{ status: 409 })
     }
+
     if (error) return NextResponse.json({ message: "Invalid id" }, { status: 400 });
 
     try {
@@ -58,9 +59,10 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx) {
 
     if (!isOk) {
         return NextResponse.json({
-            message: "User is not allowed!"
+            message: "Forbidden"
         },{ status: 409 })
     }
+
     if (error) return NextResponse.json({ message: "Invalid id" }, { status: 400 });
 
     const body = await request.json();
@@ -105,9 +107,10 @@ export async function DELETE(_: NextRequest, ctx: RouteCtx) {
 
     if (!isOk) {
         return NextResponse.json({
-            message: "User is not allowed!"
+            message: "Forbidden"
         },{ status: 409 })
     }
+    
     if (error) return NextResponse.json({ message: "Invalid id" }, { status: 400 });
 
     try {
