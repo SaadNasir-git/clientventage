@@ -1,33 +1,19 @@
 // ===== Types matching the backend schema (Drizzle) =====
 
-export type ProjectStatus = "PLANNING" | "IN_PROGRESS" | "REVIEW" | "COMPLETED";
-export type ProjectPriority = "LOW" | "MEDIUM" | "HIGH";
-export type ActivityAction =
-  | "PROJECT_CREATED"
-  | "PROJECT_UPDATED"
-  | "PROJECT_DELETED";
+import { activityActionEnum, client, project, projectPriorityEnum, projectStatusEnum, user } from "@/db/schema";
+import { insertClientSchema, insertProjectSchema, updateClientSchema, updateProjectSchema } from "@/db/validators";
+import { z } from 'zod';
 
-export interface Client {
-  id: string;
-  name: string;
-  company: string | null;
-  email: string;
-  phone: string | null;
-  address: string | null;
-  notes: string | null;
+export type ProjectStatus = typeof projectStatusEnum.enumValues[number];
+export type ProjectPriority = typeof projectPriorityEnum.enumValues[number];
+export type ActivityAction = typeof activityActionEnum.enumValues[number];
+
+export type Client = Omit<typeof client.$inferSelect, "deletedAt"> & {
   createdAt: string;
   updatedAt: string;
 }
 
-export interface Project {
-  id: string;
-  clientId: string;
-  title: string;
-  description: string | null;
-  status: ProjectStatus;
-  priority: ProjectPriority;
-  startDate: string;
-  dueDate: string;
+export type Project = Omit<typeof project.$inferSelect, "deletedAt"> & {
   createdAt: string;
   updatedAt: string;
 }
@@ -47,50 +33,17 @@ export interface ActivityLog {
 
 // ===== Payload types for create/update =====
 
-export interface ClientInput {
-  name: string;
-  company?: string | null;
-  email: string;
-  phone?: string | null;
-  address?: string | null;
-  notes?: string | null;
-}
+type OmitType = "id" | "createdAt" | "updatedAt" | "deletedAt";
 
-export interface ClientUpdate {
-  name?: string;
-  company?: string | null;
-  email?: string;
-  phone?: string | null;
-  address?: string | null;
-  notes?: string | null;
-}
+export type ClientInput = Omit<z.infer<typeof insertClientSchema>, OmitType>
 
-export interface ProjectInput {
-  clientId: string;
-  title: string;
-  description?: string | null;
-  status?: ProjectStatus;
-  priority?: ProjectPriority;
-  startDate: string; // ISO date (yyyy-mm-dd)
-  dueDate: string; // ISO date (yyyy-mm-dd)
-}
+export type ClientUpdate = Omit<z.infer<typeof updateClientSchema>, OmitType>
 
-export interface ProjectUpdate {
-  title?: string;
-  description?: string | null;
-  status?: ProjectStatus;
-  priority?: ProjectPriority;
-  startDate?: string;
-  dueDate?: string;
-}
+export type ProjectInput = Omit<z.infer<typeof insertProjectSchema>, OmitType>
 
-export interface User {
-  id: string;
-  createdAt: Date;
-  updatedAt: Date;
-  email: string;
-  emailVerified: boolean;
-  name: string;
+export type ProjectUpdate = Omit<z.infer<typeof updateProjectSchema>, OmitType>
+
+export type User = Omit<typeof user.$inferSelect, "createdAt" | "updatedAt" | "image" | "role"> & {
   image?: string | null | undefined;
   role: "user" | "admin" | null | undefined;
 }
